@@ -1,0 +1,194 @@
+q1%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+file = dir("*.bmp");
+len = length(file);
+map  = zeros(256,3);
+fu = [3 3 3 4 4 4 4 4 4 4 4 3 3 3];
+fi = [1 1 1 2 2 2 2 3 3 3 3 4 4 4];
+loc = [1 2 3 1 2 3 4 1 2 3 4 1 2 3];
+
+for i = 1 : len
+   [datas,map] = imread(file(i).name);
+   [row,~] = size(map);
+   [M,N] = size(datas);
+   if (row ~= 256)
+       map1 = [map;zeros(256 - row,3)];
+       datas1 = ind2gray(datas,map1);
+   else
+   datas1 = ind2gray(datas,map);
+   end
+   figure(fi(i)),subplot(1,fu(i),loc(i));
+   [counts,z] = imhist(datas1);
+    counts = counts /M/N;
+   stem(z,counts,'-b.');
+   title(sprintf("Histogram of %s",file(i).name));
+end
+
+file = dir("*.bmp");
+len = length(file);
+map  = zeros(256,3);
+close all
+
+q2%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+fu = [3 3 3 4 4 4 4 4 4 4 4 3 3 3];
+fi = [1 1 1 2 2 2 2 3 3 3 3 4 4 4];
+loc = [1 2 3 1 2 3 4 1 2 3 4 1 2 3];
+for i = 1 : len
+   [datas,map] = imread(file(i).name);
+   [row,~] = size(map);
+   [M,N] = size(datas);
+   if (row ~= 256)
+       map2 = [map;zeros(256 - row,3)];
+       datas1 = ind2gray(datas,map2);
+   else
+   datas1 = ind2gray(datas,map);
+   map2 = map;
+   end
+   
+   [counts,z] = imhist(datas1);
+    counts = counts /M/N;
+
+    for i1 = 1:1:256
+      newH(i1,1) =  round (sum(counts(1:i1,:)) * 255);
+    end
+    figure(fi(i)),subplot(2,fu(i),loc(i));
+    newH1 = [newH,newH,newH];
+    imshow(datas,map2);
+    title(sprintf("%s,before",file(i).name));
+    
+    subplot(2,fu(i),loc(i) + fu(i));
+    imshow(uint8(datas1),uint8(newH1));
+    title(sprintf("%s,after",file(i).name));
+end
+
+q3%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+file = dir("woman*.bmp");
+len = length(file);
+map  = zeros(256,3);
+cc = 3;
+for i = 1 : cc
+    
+    
+   [datas,map] = imread(file(i).name);
+   [row,~] = size(map);
+   [M,N] = size(datas);
+   
+   
+   datas1 = ind2gray(datas,map);
+   [counts,z] = imhist(datas1);
+    counts = counts /M/N;
+   
+    newH = ones(256,1) * 1000;
+    for i1 = 1:1:256
+      newH(round (sum(countstr4(1:i1,:)) * 255) + 1,1) =  i1 - 1;%%%%%%%%
+    end
+    
+    for i1 = 1:1:256
+     std =    round (sum(counts(1:i1,:)) * 255) + 1;
+       if  newH(std,1) == 1000
+           for j1 = std + 1:256
+               if (newH(j1) ~= 1000 )
+                   newH1(i1,1) =  newH(j1,1);
+               end
+           end
+           for j2 = std - 1:1
+               if (newH(j2) ~= 1000 && std - j2 < j1 - std)
+                   newH1(i1,1) =  newH(j2,1);
+               end
+           end
+       else
+      newH1(i1,1) =  newH(std,1);
+       end
+    end
+    
+     newH2 = [newH1, newH1, newH1];
+    subplot(2,cc,i + cc);
+    imshow(datas1,uint8(newH2));
+    title(sprintf("%s,after",file(i).name));
+    
+    subplot(2,cc,i);
+    if(row ~= 256)
+    imshow(datas,[map;zeros(256 - row,3)]);
+    else
+    imshow(datas,map);
+    end
+    title(sprintf("%s,before",file(i).name));
+end
+
+
+q4%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+datas = imread("lena.bmp");
+balan(datas,7);
+datas = imread("elain.bmp");
+balan(datas,7);
+
+function [dataa] = balan(datas,win)
+%UNTITLED6 此处显示有关此函数的摘要
+%   此处显示详细说明
+    [M N] = size(datas);
+    mask = 255 * ones(M + win - 1, N + win - 1);
+    mask (1 + (win  - 1) / 2: M + (win - 1) / 2,1 + (win  - 1) / 2: N + (win - 1) / 2) = double(datas);
+    dataa = mask;
+    
+   for i = 1 + (win  - 1) / 2 :1: M  + (win  - 1) / 2
+       for j = 1 + (win  - 1) / 2 :1: N + (win  - 1) / 2
+    
+       [counts,z] = imhist(uint8(mask(i - (win  - 1) / 2:i + (win  - 1) / 2,j - (win  - 1) / 2:j + (win  - 1) / 2)));
+        counts = counts /win/win;
+        
+        for i1 = 1:1:256
+            newH(i1,1) =  round (sum(counts(1:i1,:)) * 255);
+        end
+        
+        dataa(i ,j) = newH(mask(i, j),1);
+        
+       end
+   end
+   
+    figure
+    subplot(1,2,1);
+    imshow(datas);
+    title("before");
+    
+    subplot(1,2,2);
+    imshow(uint8(dataa(1 + (win  - 1) / 2: M + (win + 1) / 2,1 + (win  - 1) / 2: N + (win + 1) / 2)));
+    title("after");
+end
+
+
+q5%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+data = imread("elain.bmp");
+threshold(data,2);
+data = imread("woman.bmp");
+threshold(data,2);
+
+
+function [T] = threshold(datas,T0)
+%UNTITLED7 此处显示有关此函数的摘要
+%   此处显示详细说明
+    [M N] = size(datas);
+    [counts,z] = imhist(datas);
+    counts = counts / M / N;
+    T1 = 0;
+    T = double(round (0.5 * (max(max(datas,[],2),[],1)) - min(min(datas,[],2),[],1)));
+while(abs(T1 - T) > T0)
+    s1 = sum(counts(1:T - 1),1);
+    s2 = sum(counts(T + 1:256),1);
+    count  = counts .* [(0:1:255)]';
+    s1 =  sum(count(1:T - 1),1) / s1;
+    s2 = sum(count(T + 1:256),1)/ s2 ;
+    T1 = T;
+    T = round(0.5 * ( s1 + s2));
+end
+
+for i = 1:M
+    for j = 1:N
+        if datas(i,j) > T
+            datas(i,j) = 255;
+        else
+            datas(i,j) = 0;
+        end
+    end
+end
+figure
+imshow(datas);
+end
